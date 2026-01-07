@@ -1,6 +1,7 @@
 // src/app/dishes/[id]/page.tsx
 import Image from "next/image";
 import { getCocktailById } from "@/services/cocktaildb";
+import BackButton from "@/components/BackButton";
 
 interface CocktailDetailProps {
   params: Promise<{ id: string }>;
@@ -28,6 +29,7 @@ export default async function CocktailDetail({ params }: CocktailDetailProps) {
 
   return (
     <main className="p-6 max-w-4xl mx-auto">
+      <BackButton />
       <h1 className="text-3xl font-bold mb-4">{cocktail.strDrink}</h1>
 
       {cocktail.strDrinkThumb && (

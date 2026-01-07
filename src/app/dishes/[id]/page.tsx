@@ -1,6 +1,7 @@
 // src/app/dishes/[id]/page.tsx
 import Image from "next/image";
 import { getMealById } from "@/services/mealdb";
+import BackButton from "@/components/BackButton";
 
 interface DishDetailProps {
   params: Promise<{ id: string }>;
@@ -27,6 +28,7 @@ export default async function DishDetail({ params }: DishDetailProps) {
 
   return (
     <main className="p-6 max-w-4xl mx-auto">
+      <BackButton />
       <h1 className="text-3xl font-bold mb-4">{meal.strMeal}</h1>
 
       {meal.strMealThumb && (
