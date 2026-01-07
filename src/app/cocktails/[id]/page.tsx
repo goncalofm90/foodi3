@@ -42,7 +42,7 @@ export default async function CocktailDetail({ params }: CocktailDetailProps) {
         />
       )}
 
-      <div className="mb-6 text-gray-600">
+      <div className="mb-6">
         <p>
           <strong>Category:</strong> {cocktail.strCategory}
         </p>
@@ -62,9 +62,7 @@ export default async function CocktailDetail({ params }: CocktailDetailProps) {
 
       <section>
         <h2 className="text-2xl font-semibold mb-2">Instructions</h2>
-        <p className="whitespace-pre-line text-gray-700">
-          {cocktail.strInstructions}
-        </p>
+        <p className="whitespace-pre-line">{cocktail.strInstructions}</p>
       </section>
     </main>
   );

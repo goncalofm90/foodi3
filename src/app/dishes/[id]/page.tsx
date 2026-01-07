@@ -41,7 +41,7 @@ export default async function DishDetail({ params }: DishDetailProps) {
         />
       )}
 
-      <div className="mb-6 text-gray-600">
+      <div className="mb-6">
         <p>
           <strong>Category:</strong> {meal.strCategory}
         </p>
@@ -61,9 +61,7 @@ export default async function DishDetail({ params }: DishDetailProps) {
 
       <section>
         <h2 className="text-2xl font-semibold mb-2">Instructions</h2>
-        <p className="whitespace-pre-line text-gray-700">
-          {meal.strInstructions}
-        </p>
+        <p className="whitespace-pre-line">{meal.strInstructions}</p>
       </section>
     </main>
   );
