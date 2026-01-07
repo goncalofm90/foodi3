@@ -14,6 +14,7 @@ export function mapMealToCardItem(meal: Meal): CardItem {
     category: meal.strCategory,
     subcategory: meal.strArea,
     thumbnail: meal.strMealThumb,
+    href: `/dishes/${meal.idMeal}`,
   };
 }
 
@@ -24,3 +25,10 @@ export async function searchMeals(query: string): Promise<Meal[]> {
   const data = await res.json();
   return data.meals || [];
 }
+
+export async function getMealById(id: string): Promise<Meal | null> {
+  const res = await fetch(`${BASE_URL}/lookup.php?i=${id}`, { cache: "no-store" });
+  const data = await res.json();
+  return data.meals?.[0] || null;
+}
+
