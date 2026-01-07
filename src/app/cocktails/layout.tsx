@@ -1,5 +1,14 @@
-import type { ReactNode } from "react";
+import Navbar from "@/components/Navbar";
 
-export default function RecipesLayout({ children }: { children: ReactNode }) {
-  return <section className="p-4">{children}</section>;
+export default function CocktailsLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <>
+      <Navbar />
+      <main className="p-4">{children}</main>
+    </>
+  );
 }

@@ -1,8 +1,14 @@
+// src/components/Navbar.tsx
+import Link from "next/link";
+
 export default function Navbar() {
   return (
-    <nav>
-      <a href="/dishes">Dishes</a>
-      <a href="/cocktails">Cocktails</a>
+    <nav className="bg-gray-800 text-white p-4 flex justify-between">
+      <h1 className="text-xl font-bold">Foodi3</h1>
+      <div className="space-x-4">
+        <Link href="/dishes" className="hover:underline">Dishes</Link>
+        <Link href="/cocktails" className="hover:underline">Cocktails</Link>
+      </div>
     </nav>
   );
 }

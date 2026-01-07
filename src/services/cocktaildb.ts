@@ -14,6 +14,7 @@ export function mapCocktailToCardItem(drink: Cocktail): CardItem {
     category: drink.strCategory,
     subcategory: drink.strAlcoholic, // "Alcoholic" / "Non-Alcoholic"
     thumbnail: drink.strDrinkThumb,
+    href: `/cocktails/${drink.idDrink}`,
   };
 }
 
@@ -25,3 +26,8 @@ export async function searchCocktails(query: string): Promise<Cocktail[]> {
   return data.drinks || [];
 }
 
+export async function getCocktailById(id: string): Promise<Cocktail | null> {
+  const res = await fetch(`${BASE_URL}/lookup.php?i=${id}`, { cache: "no-store" });
+  const data = await res.json();
+  return data.drinks?.[0] || null;
+}
