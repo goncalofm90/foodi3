@@ -19,16 +19,11 @@ export default function CocktailsPage() {
 
   useEffect(() => {
     const fetchCocktails = async () => {
-      if (!query) {
-        setCocktails([]);
-        return;
-      }
-
       setLoading(true);
       setError(null);
 
       try {
-        const drinks = await searchCocktails(query);
+        const drinks = await searchCocktails(query || "a"); // default list
         setCocktails(drinks.map(mapCocktailToCardItem));
       } catch {
         setError("Failed to fetch cocktails");
@@ -70,7 +65,9 @@ export default function CocktailsPage() {
 
       {loading && <p>Loading...</p>}
       {error && <p className="text-red-500">{error}</p>}
-      {!loading && cocktails.length === 0 && query && <p>No cocktails found.</p>}
+      {!loading && cocktails.length === 0 && query && (
+        <p>No cocktails found.</p>
+      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
         {cocktails.map((cocktail) => (

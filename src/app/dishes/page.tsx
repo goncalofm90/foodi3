@@ -6,6 +6,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import RecipeCard from "@/components/RecipeCard";
 import { searchMeals, mapMealToCardItem } from "@/services/mealdb";
 import { CardItem } from "@/types/CardItem";
+import Link from "next/link";
 
 export default function DishesPage() {
   const searchParams = useSearchParams();
@@ -19,17 +20,17 @@ export default function DishesPage() {
 
   useEffect(() => {
     const fetchDishes = async () => {
-      if (!query) {
-        setDishes([]);
-        return;
-      }
-
       setLoading(true);
       setError(null);
 
       try {
-        const meals = await searchMeals(query);
-        setDishes(meals.map(mapMealToCardItem));
+        const meals = await searchMeals(query || "a"); // default list
+        setDishes(
+          meals.map((meal) => ({
+            ...mapMealToCardItem(meal),
+            href: `/dishes/${meal.idMeal}`,
+          }))
+        );
       } catch {
         setError("Failed to fetch dishes");
       } finally {
@@ -74,7 +75,9 @@ export default function DishesPage() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
         {dishes.map((dish) => (
-          <RecipeCard key={dish.id} item={dish} />
+          <Link key={dish.id} href={`/dishes/${dish.id}`}>
+            <RecipeCard item={dish} />
+          </Link>
         ))}
       </div>
     </main>
