@@ -4,4 +4,5 @@ export interface CardItem {
   category: string;
   subcategory?: string;
   thumbnail: string;
+  href: string;
 }
