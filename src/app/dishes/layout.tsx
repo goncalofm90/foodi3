@@ -1,4 +1,3 @@
-// src/app/recipes/layout.tsx
 import type { ReactNode } from "react";
 
 export default function RecipesLayout({ children }: { children: ReactNode }) {
