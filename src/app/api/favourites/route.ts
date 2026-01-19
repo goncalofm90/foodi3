@@ -1,30 +1,36 @@
+// src/app/api/favourites/route.ts
 import { NextResponse } from "next/server";
-import { databases } from "@/lib/client"; // Use server client
-import { Query, Permission, Role, ID } from "node-appwrite"; // Use node-appwrite
+import { client } from "@/lib/client";
+import { TablesDB } from "appwrite";
+
+
+const tables = new TablesDB(client);
+
+const DATABASE_ID = process.env.NEXT_PUBLIC_APPWRITE_DB_ID!;
+const FAVOURITES_TABLE_ID = process.env.NEXT_PUBLIC_APPWRITE_FAVOURITES_TABLE_ID!;
 
 export async function POST(req: Request) {
   try {
-    const { userId, itemId, name, type, thumbnail } = await req.json();
+    const body = await req.json();
+    const { userId, itemId, name, type, thumbnail } = body;
 
-    const doc = await databases.createDocument(
-      "696e11bf0018c296817c",
-      "favourites",
-      ID.unique(),
-      { userId, itemId, name, type, thumbnail },
-      [
-        Permission.read(Role.user(userId)),
-        Permission.update(Role.user(userId)),
-        Permission.delete(Role.user(userId)),
-      ]
-    );
+    if (!userId || !itemId || !name) {
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    }
+
+    // Create favourite row (unique per user + item)
+    const doc = await tables.createRow({
+      tableId: FAVOURITES_TABLE_ID,
+      data: { userId, itemId, name, type, thumbnail },
+      read: [`user:${userId}`],  // only the owner can read
+      write: [`user:${userId}`], // only the owner can update
+      rowId: `${itemId}_${userId}`, // unique ID
+    });
 
     return NextResponse.json(doc);
-  } catch (error: any) {
-    console.error("Error creating favourite:", error);
-    return NextResponse.json(
-      { error: error.message || "Failed to create favourite" },
-      { status: 500 }
-    );
+  } catch (err: any) {
+    console.error("Error saving favourite:", err);
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
 
@@ -34,21 +40,18 @@ export async function GET(req: Request) {
     const userId = url.searchParams.get("userId");
 
     if (!userId) {
-      return NextResponse.json({ error: "userId is required" }, { status: 400 });
+      return NextResponse.json({ error: "Missing userId" }, { status: 400 });
     }
 
-    const docs = await databases.listDocuments(
-      "696e11bf0018c296817c",
-      "favourites",
-      [Query.equal("userId", userId)]
-    );
+    // List rows in favourites table for this user
+    const docs = await tables.listRows({
+      tableId: FAVOURITES_TABLE_ID,
+      filters: [`userId=${userId}`],
+    });
 
-    return NextResponse.json(docs.documents);
-  } catch (error: any) {
-    console.error("Error fetching favourites:", error);
-    return NextResponse.json(
-      { error: error.message || "Failed to fetch favourites" },
-      { status: 500 }
-    );
+    return NextResponse.json(docs.rows);
+  } catch (err: any) {
+    console.error("Error fetching favourites:", err);
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { account } from "@/lib/client";
-import { OAuthProvider, ID } from "appwrite";
+import { client, account } from "@/lib/client";
+import { OAuthProvider, ID, TablesDB } from "appwrite";
 
 export default function AuthPage() {
   const router = useRouter();
+  const tables = new TablesDB(client); // instantiate TablesDB
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -27,7 +28,7 @@ export default function AuthPage() {
     fetchUser();
   }, []);
 
-  // Google OAuth login (login only, no signup)
+  // Google OAuth login
   const handleGoogleLogin = async () => {
     try {
       setLoading(true);
@@ -55,12 +56,26 @@ export default function AuthPage() {
     setError(null);
 
     try {
-      await account.create({
+      // 1️⃣ Create Appwrite account
+      const userAccount = await account.create({
         userId: ID.unique(),
         email,
         password,
-        name: email, // Use email as name
+        name: email,
       });
+
+      // 2️⃣ Create a corresponding row in Users table
+      await tables.createRow({
+        tableId: process.env.NEXT_PUBLIC_APPWRITE_USERS_TABLE_ID!,
+        data: {
+          email: userAccount.email,
+          name: userAccount.name,
+          createdAt: new Date().toISOString(),
+        },
+        read: [`user:${userAccount.$id}`],
+        write: [`user:${userAccount.$id}`],
+      });
+
       alert("Account created! You can now login.");
     } catch (err: any) {
       console.error(err);
@@ -91,7 +106,6 @@ export default function AuthPage() {
       router.push("/dishes");
     } catch (err: any) {
       console.error(err);
-      // Provide user-friendly error messages
       if (err.code === 401) {
         setError("Invalid email or password. Please check your credentials.");
       } else {
@@ -101,6 +115,34 @@ export default function AuthPage() {
       setLoading(false);
     }
   };
+
+  // Logout
+  const handleLogout = async () => {
+    try {
+      await account.deleteSession({ sessionId: "current" });
+      setUser(null);
+      router.push("/auth");
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // If user is logged in, show welcome + logout
+  if (user) {
+    return (
+      <main className="flex flex-col items-center justify-center min-h-screen p-4">
+        <h1 className="text-3xl font-bold mb-4">
+          Welcome, {user.name || user.email}
+        </h1>
+        <button
+          onClick={handleLogout}
+          className="bg-gray-700 text-white px-6 py-3 rounded hover:bg-gray-800 transition"
+        >
+          Logout
+        </button>
+      </main>
+    );
+  }
 
   // Login / Signup form
   return (
@@ -113,7 +155,6 @@ export default function AuthPage() {
         </div>
       )}
 
-      {/* Email / Password */}
       <div className="flex flex-col space-y-2 w-full max-w-sm">
         <input
           type="email"
@@ -150,7 +191,6 @@ export default function AuthPage() {
 
       <div className="my-4 w-full max-w-sm text-center">OR</div>
 
-      {/* Google login */}
       <button
         onClick={handleGoogleLogin}
         disabled={loading}

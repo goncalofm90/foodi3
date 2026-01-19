@@ -1,11 +1,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { account } from "@/lib/client";
+import { account, client } from "@/lib/client";
+import { TablesDB } from "appwrite";
 import RecipeCard from "@/components/RecipeCard";
 
+const DATABASE_ID = process.env.NEXT_PUBLIC_APPWRITE_DB_ID!;
+const FAVOURITES_TABLE_ID =
+  process.env.NEXT_PUBLIC_APPWRITE_FAVOURITES_TABLE_ID!;
+const tables = new TablesDB(client);
+
 export default function ProfilePage() {
-  const [user, setUser] = useState<any | undefined>(undefined); // undefined = still loading
+  const [user, setUser] = useState<any | undefined>(undefined); // undefined = loading
   const [favourites, setFavourites] = useState<any[]>([]);
   const [loadingFavourites, setLoadingFavourites] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -16,19 +22,14 @@ export default function ProfilePage() {
         const currentUser = await account.get();
         setUser(currentUser);
 
-        // Fetch favourites separately so errors don't affect user state
         setLoadingFavourites(true);
         try {
-          const res = await fetch(`/api/favourites?userId=${currentUser.$id}`);
-          if (!res.ok) {
-            // Try to get the error message from the response
-            const errorData = await res.json().catch(() => null);
-            const errorMsg =
-              errorData?.error || `Failed to fetch favourites: ${res.status}`;
-            throw new Error(errorMsg);
-          }
-          const data = await res.json();
-          setFavourites(data || []); // data is already the documents array
+          const favs = await tables.listRows({
+            databaseId: DATABASE_ID, // ✅ added
+            tableId: FAVOURITES_TABLE_ID,
+            filters: [`userId=${currentUser.$id}`],
+          });
+          setFavourites(favs.rows || []);
         } catch (favErr: any) {
           console.error("Error fetching favourites:", favErr);
           setError(favErr.message || "Failed to load favourites");
@@ -37,9 +38,10 @@ export default function ProfilePage() {
         }
       } catch (userErr) {
         console.error("Error fetching user:", userErr);
-        setUser(null); // definitely not logged in
+        setUser(null);
       }
     };
+
     fetchUserData();
   }, []);
 
@@ -68,14 +70,14 @@ export default function ProfilePage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {favourites.map((item) => (
             <RecipeCard
-              key={item.itemId}
+              key={item.rowId}
               item={{
                 id: item.itemId,
-                name: item.name,
+                name: item.itemName,
                 subcategory: "",
-                category: item.type === "dish" ? "Dish" : "Cocktail",
+                category: item.itemType === "dish" ? "Dish" : "Cocktail",
                 thumbnail: item.thumbnail,
-                href: `/${item.type}/${item.itemId}`,
+                href: `/${item.itemType}/${item.itemId}`,
               }}
             />
           ))}
