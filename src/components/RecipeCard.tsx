@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useState, useEffect } from "react";
 import { account, client } from "@/lib/client";
 import { CardItem } from "@/types/CardItem";
-import { TablesDB } from "appwrite";
+import { TablesDB, ID, Query } from "appwrite";
 
 interface RecipeCardProps {
   item: CardItem;
@@ -36,11 +36,46 @@ export default function RecipeCard({ item }: RecipeCardProps) {
       return;
     }
 
+    console.log("🔄 Saving favourite for:", {
+      userId: currentUser.$id,
+      itemId: item.id,
+      itemName: item.name,
+    });
+
     try {
-      await tables.createRow({
-        databaseId: DATABASE_ID, // ✅ added
+      // Use Query class for proper syntax
+      const existing = await tables.listRows({
+        databaseId: DATABASE_ID,
         tableId: FAVOURITES_TABLE_ID,
-        rowId: `${item.id}_${currentUser.$id}`, // unique per user + item
+        queries: [
+          Query.equal("userId", currentUser.$id),
+          Query.equal("itemId", item.id),
+        ],
+      });
+
+      console.log("🔍 Duplicate check results:", {
+        queriesUsed: "Query.equal() methods",
+        rowsFound: existing.rows?.length || 0,
+        rows: existing.rows?.map((r) => ({
+          userId: r.userId,
+          itemId: r.itemId,
+          itemName: r.itemName,
+        })),
+      });
+
+      // If we found any rows, user already has this item
+      if (existing.rows && existing.rows.length > 0) {
+        alert("You already have this in your favourites!");
+        return;
+      }
+
+      // Save the favourite
+      const uniqueRowId = ID.unique();
+
+      await tables.createRow({
+        databaseId: DATABASE_ID,
+        tableId: FAVOURITES_TABLE_ID,
+        rowId: uniqueRowId,
         data: {
           userId: currentUser.$id,
           itemId: item.id,
@@ -48,12 +83,14 @@ export default function RecipeCard({ item }: RecipeCardProps) {
           itemType: item.subcategory ? "dish" : "cocktail",
           thumbnail: item.thumbnail,
         },
-        read: [`user:${currentUser.$id}`], // only this user can read
-        write: [`user:${currentUser.$id}`], // only this user can update
+        read: [`user:${currentUser.$id}`],
+        write: [`user:${currentUser.$id}`],
       });
+
+      console.log("✅ Favourite saved!");
       alert("Saved to favourites!");
     } catch (err: any) {
-      console.error("Failed to save favourite:", err);
+      console.error("❌ Failed to save favourite:", err);
       alert(err.message || "Failed to save favourite.");
     }
   };
