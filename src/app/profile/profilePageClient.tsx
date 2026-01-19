@@ -20,8 +20,6 @@ export default function ProfilePage() {
     const fetchUserData = async () => {
       try {
         const currentUser = await account.get();
-        console.log("🟢 CURRENT USER ID:", currentUser.$id);
-        console.log("🟢 CURRENT USER EMAIL:", currentUser.email);
 
         setUser(currentUser);
 
@@ -33,19 +31,13 @@ export default function ProfilePage() {
             tableId: FAVOURITES_TABLE_ID,
           });
 
-          console.log("📊 ALL ROWS IN DATABASE:", allFavs.rows?.length);
-
           // Filter to get ONLY current user's favourites
           const userFavs =
             allFavs.rows?.filter((row) => {
               const matches = row.userId === currentUser.$id;
-              console.log(
-                `Checking: ${row.itemName} | User: ${row.userId} | Matches: ${matches}`
-              );
               return matches;
             }) || [];
 
-          console.log("✅ USER'S FAVOURITES:", userFavs);
           setFavourites(userFavs); // ✅ CORRECT: Set only user's favourites
         } catch (favErr: any) {
           console.error("❌ Error:", favErr);

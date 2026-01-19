@@ -12,7 +12,6 @@ export default function OAuthCallback() {
     const handleOAuthCallback = async () => {
       try {
         const currentUser = await account.get();
-        console.log("🟢 OAuth User:", currentUser.email);
 
         const syncResponse = await fetch("/api/register-user", {
           method: "POST",
@@ -28,7 +27,6 @@ export default function OAuthCallback() {
         });
 
         const responseData = await syncResponse.json();
-        console.log("🟢 Sync Response:", responseData);
 
         // Even if user already exists, it's still a successful login
         if (syncResponse.ok || responseData.message === "User already exists") {

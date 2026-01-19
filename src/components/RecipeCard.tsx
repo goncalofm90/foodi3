@@ -36,12 +36,6 @@ export default function RecipeCard({ item }: RecipeCardProps) {
       return;
     }
 
-    console.log("🔄 Saving favourite for:", {
-      userId: currentUser.$id,
-      itemId: item.id,
-      itemName: item.name,
-    });
-
     try {
       // Use Query class for proper syntax
       const existing = await tables.listRows({
@@ -51,16 +45,6 @@ export default function RecipeCard({ item }: RecipeCardProps) {
           Query.equal("userId", currentUser.$id),
           Query.equal("itemId", item.id),
         ],
-      });
-
-      console.log("🔍 Duplicate check results:", {
-        queriesUsed: "Query.equal() methods",
-        rowsFound: existing.rows?.length || 0,
-        rows: existing.rows?.map((r) => ({
-          userId: r.userId,
-          itemId: r.itemId,
-          itemName: r.itemName,
-        })),
       });
 
       // If we found any rows, user already has this item
@@ -87,7 +71,6 @@ export default function RecipeCard({ item }: RecipeCardProps) {
         write: [`user:${currentUser.$id}`],
       });
 
-      console.log("✅ Favourite saved!");
       alert("Saved to favourites!");
     } catch (err: any) {
       console.error("❌ Failed to save favourite:", err);

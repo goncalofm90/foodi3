@@ -9,8 +9,6 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { userId, email, name, avatar = "", oauthProvider = "" } = body;
 
-    console.log("📝 Processing user:", { userId, email, name });
-
     try {
       // First, try to get the existing row
       const existingRow = await tables.getRow({
@@ -19,7 +17,6 @@ export async function POST(req: Request) {
         rowId: userId,
       });
 
-      console.log("✅ User already exists, skipping creation");
       return NextResponse.json({ 
         message: "User already exists",
         user: existingRow,
@@ -45,7 +42,6 @@ export async function POST(req: Request) {
           write: [`user:${userId}`],
         });
 
-        console.log("✅ New user created");
         return NextResponse.json({ 
           message: "User created",
           user: row,
