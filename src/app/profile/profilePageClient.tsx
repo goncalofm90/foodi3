@@ -38,7 +38,7 @@ export default function ProfilePage() {
               return matches;
             }) || [];
 
-          setFavourites(userFavs); // ✅ CORRECT: Set only user's favourites
+          setFavourites(userFavs);
         } catch (favErr: any) {
           console.error("❌ Error:", favErr);
           setError(favErr.message);

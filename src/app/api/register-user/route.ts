@@ -24,7 +24,6 @@ export async function POST(req: Request) {
       });
       
     } catch (getError: any) {
-      // If getRow fails with 404, user doesn't exist → create
       if (getError.code === 404 || getError.type === 'document_not_found') {
         
         const row = await tables.createRow({
