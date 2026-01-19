@@ -76,7 +76,7 @@ http://localhost:3000
 
 ## Status
 
-🚧 **Work in progress** – core setup and search functionality under active development.
+🚧 **Work in progress** – core setup and search functionality under active development. Obviously the UX/UI is also very placeholder. That is the last thing I'll work on probably.
 
 ---
 

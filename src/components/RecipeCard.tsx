@@ -17,6 +17,9 @@ const tables = new TablesDB(client);
 
 export default function RecipeCard({ item }: RecipeCardProps) {
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [isFavourite, setIsFavourite] = useState(false);
+  const [favouriteRowId, setFavouriteRowId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -30,14 +33,45 @@ export default function RecipeCard({ item }: RecipeCardProps) {
     fetchUser();
   }, []);
 
+  useEffect(() => {
+    const checkIfFavourite = async () => {
+      if (!currentUser) return;
+
+      try {
+        const existing = await tables.listRows({
+          databaseId: DATABASE_ID,
+          tableId: FAVOURITES_TABLE_ID,
+          queries: [
+            Query.equal("userId", currentUser.$id),
+            Query.equal("itemId", item.id),
+          ],
+        });
+
+        if (existing.rows && existing.rows.length > 0) {
+          setIsFavourite(true);
+          setFavouriteRowId(existing.rows[0].$id);
+        } else {
+          setIsFavourite(false);
+          setFavouriteRowId(null);
+        }
+      } catch (err) {
+        console.error("Error checking favourite status:", err);
+      }
+    };
+
+    checkIfFavourite();
+  }, [currentUser, item.id]);
+
   const handleSaveFavourite = async () => {
     if (!currentUser) {
       alert("Please login to save favourites!");
       return;
     }
 
+    setLoading(true);
+
     try {
-      // Use Query class for proper syntax
+      // Check for duplicates
       const existing = await tables.listRows({
         databaseId: DATABASE_ID,
         tableId: FAVOURITES_TABLE_ID,
@@ -47,9 +81,9 @@ export default function RecipeCard({ item }: RecipeCardProps) {
         ],
       });
 
-      // If we found any rows, user already has this item
       if (existing.rows && existing.rows.length > 0) {
         alert("You already have this in your favourites!");
+        setLoading(false);
         return;
       }
 
@@ -71,10 +105,39 @@ export default function RecipeCard({ item }: RecipeCardProps) {
         write: [`user:${currentUser.$id}`],
       });
 
+      setIsFavourite(true);
+      setFavouriteRowId(uniqueRowId);
       alert("Saved to favourites!");
     } catch (err: any) {
       console.error("❌ Failed to save favourite:", err);
       alert(err.message || "Failed to save favourite.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRemoveFavourite = async () => {
+    if (!currentUser || !favouriteRowId) {
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      await tables.deleteRow({
+        databaseId: DATABASE_ID,
+        tableId: FAVOURITES_TABLE_ID,
+        rowId: favouriteRowId,
+      });
+
+      setIsFavourite(false);
+      setFavouriteRowId(null);
+      alert("Removed from favourites!");
+    } catch (err: any) {
+      console.error("❌ Failed to remove favourite:", err);
+      alert(err.message || "Failed to remove favourite.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -92,12 +155,23 @@ export default function RecipeCard({ item }: RecipeCardProps) {
         <p className="text-sm text-gray-500">{item.category}</p>
       )}
 
-      <button
-        className="bg-yellow-400 text-white px-2 py-1 rounded mt-2 self-start"
-        onClick={handleSaveFavourite}
-      >
-        Save
-      </button>
+      {isFavourite ? (
+        <button
+          className="bg-red-500 text-white px-2 py-1 rounded mt-2 self-start disabled:opacity-50"
+          onClick={handleRemoveFavourite}
+          disabled={loading}
+        >
+          {loading ? "Removing..." : "Remove from favourites"}
+        </button>
+      ) : (
+        <button
+          className="bg-yellow-400 text-white px-2 py-1 rounded mt-2 self-start disabled:opacity-50"
+          onClick={handleSaveFavourite}
+          disabled={loading}
+        >
+          {loading ? "Saving..." : "Save to favourites"}
+        </button>
+      )}
     </div>
   );
 }
