@@ -11,7 +11,7 @@ const FAVOURITES_TABLE_ID =
 const tables = new TablesDB(client);
 
 export default function ProfilePage() {
-  const [user, setUser] = useState<any | undefined>(undefined); // undefined = loading
+  const [user, setUser] = useState<any | undefined>(undefined);
   const [favourites, setFavourites] = useState<any[]>([]);
   const [loadingFavourites, setLoadingFavourites] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -20,24 +20,33 @@ export default function ProfilePage() {
     const fetchUserData = async () => {
       try {
         const currentUser = await account.get();
+
         setUser(currentUser);
 
         setLoadingFavourites(true);
         try {
-          const favs = await tables.listRows({
-            databaseId: DATABASE_ID, // ✅ added
+          // Get ALL favourites from database
+          const allFavs = await tables.listRows({
+            databaseId: DATABASE_ID,
             tableId: FAVOURITES_TABLE_ID,
-            filters: [`userId=${currentUser.$id}`],
           });
-          setFavourites(favs.rows || []);
+
+          // Filter to get ONLY current user's favourites
+          const userFavs =
+            allFavs.rows?.filter((row) => {
+              const matches = row.userId === currentUser.$id;
+              return matches;
+            }) || [];
+
+          setFavourites(userFavs);
         } catch (favErr: any) {
-          console.error("Error fetching favourites:", favErr);
-          setError(favErr.message || "Failed to load favourites");
+          console.error("❌ Error:", favErr);
+          setError(favErr.message);
         } finally {
           setLoadingFavourites(false);
         }
       } catch (userErr) {
-        console.error("Error fetching user:", userErr);
+        console.error("❌ Error fetching user:", userErr);
         setUser(null);
       }
     };
@@ -70,7 +79,7 @@ export default function ProfilePage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {favourites.map((item) => (
             <RecipeCard
-              key={item.rowId}
+              key={item.$id}
               item={{
                 id: item.itemId,
                 name: item.itemName,

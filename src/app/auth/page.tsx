@@ -2,12 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { client, account } from "@/lib/client";
-import { OAuthProvider, ID, TablesDB } from "appwrite";
+import { account } from "@/lib/client";
+import { OAuthProvider, ID } from "appwrite";
 
 export default function AuthPage() {
   const router = useRouter();
-  const tables = new TablesDB(client); // instantiate TablesDB
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -17,15 +16,32 @@ export default function AuthPage() {
 
   // Check if user is already logged in
   useEffect(() => {
-    const fetchUser = async () => {
+    const fetchAndSyncUser = async () => {
       try {
         const currentUser = await account.get();
         setUser(currentUser);
+
+        // Always try to sync user to database
+        const response = await fetch("/api/register-user", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId: currentUser.$id,
+            email: currentUser.email,
+            name: currentUser.name || currentUser.email,
+            avatar: currentUser.prefs?.avatar || "",
+          }),
+        });
+
+        if (!response.ok) {
+          console.warn("User sync warning:", await response.text());
+        }
       } catch {
         setUser(null);
       }
     };
-    fetchUser();
+
+    fetchAndSyncUser();
   }, []);
 
   // Google OAuth login
@@ -34,13 +50,12 @@ export default function AuthPage() {
       setLoading(true);
       await account.createOAuth2Session({
         provider: OAuthProvider.Google,
-        success: `${window.location.origin}/dishes`,
-        failure: `${window.location.origin}/auth`,
+        success: `${window.location.origin}/auth/callback`,
+        failure: `${window.location.origin}/auth?error=oauth_failed`,
       });
     } catch (err) {
       console.error("OAuth error:", err);
       setError("Failed to initiate Google login. Please try again.");
-    } finally {
       setLoading(false);
     }
   };
@@ -64,17 +79,22 @@ export default function AuthPage() {
         name: email,
       });
 
-      // 2️⃣ Create a corresponding row in Users table
-      await tables.createRow({
-        tableId: process.env.NEXT_PUBLIC_APPWRITE_USERS_TABLE_ID!,
-        data: {
+      // 2️⃣ Create user row via server-side API route
+      const res = await fetch("/api/register-user", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: userAccount.$id,
           email: userAccount.email,
-          name: userAccount.name,
-          createdAt: new Date().toISOString(),
-        },
-        read: [`user:${userAccount.$id}`],
-        write: [`user:${userAccount.$id}`],
+          name: userAccount.name || userAccount.email,
+          avatar: userAccount.prefs?.avatar || "",
+        }),
       });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || "Failed to create user in database");
+      }
 
       alert("Account created! You can now login.");
     } catch (err: any) {

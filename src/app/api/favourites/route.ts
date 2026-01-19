@@ -22,9 +22,9 @@ export async function POST(req: Request) {
     const doc = await tables.createRow({
       tableId: FAVOURITES_TABLE_ID,
       data: { userId, itemId, name, type, thumbnail },
-      read: [`user:${userId}`],  // only the owner can read
-      write: [`user:${userId}`], // only the owner can update
-      rowId: `${itemId}_${userId}`, // unique ID
+      read: [`user:${userId}`],  
+      write: [`user:${userId}`], 
+      rowId: `${itemId}_${userId}`,
     });
 
     return NextResponse.json(doc);
