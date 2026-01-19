@@ -99,7 +99,7 @@ export default function RecipeCard({ item }: RecipeCardProps) {
           userId: currentUser.$id,
           itemId: item.id,
           itemName: item.name,
-          itemType: item.subcategory ? "dish" : "cocktail",
+          itemType: item.subcategory === "Alcoholic" ? "cocktail" : "dish",
           thumbnail: item.thumbnail,
         },
         read: [`user:${currentUser.$id}`],
@@ -142,7 +142,6 @@ export default function RecipeCard({ item }: RecipeCardProps) {
     }
   };
 
-  //i know theres an edge case here will fix later
   const detailUrl =
     item.subcategory !== "Alcoholic"
       ? `/dishes/${item.id}`
