@@ -2,14 +2,11 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { account } from "@/lib/client";
 
 export default function Navbar() {
-  const router = useRouter();
   const [user, setUser] = useState<any>(null);
 
-  // Check if user is logged in
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -26,7 +23,7 @@ export default function Navbar() {
     try {
       await account.deleteSession({ sessionId: "current" });
       setUser(null);
-      router.push("/auth");
+      window.location.href = "/auth";
     } catch (err) {
       console.error(err);
     }
@@ -38,28 +35,22 @@ export default function Navbar() {
         Foodi3
       </Link>
 
-      <div className="flex items-center gap-4">
-        <Link href="/dishes" className="hover:underline">
-          Dishes
-        </Link>
-        <Link href="/cocktails" className="hover:underline">
-          Cocktails
-        </Link>
+      <div className="flex items-center space-x-4">
+        <Link href="/dishes">Dishes</Link>
+        <Link href="/cocktails">Cocktails</Link>
 
         {user ? (
-          <button
-            onClick={handleLogout}
-            className="bg-red-500 px-4 py-2 rounded hover:bg-red-600 transition"
-          >
-            Logout
-          </button>
+          <>
+            <Link href="/profile">Profile</Link>
+            <button
+              onClick={handleLogout}
+              className="bg-gray-700 px-3 py-1 rounded hover:bg-gray-600 transition"
+            >
+              Logout
+            </button>
+          </>
         ) : (
-          <Link
-            href="/auth"
-            className="bg-blue-500 px-4 py-2 rounded hover:bg-blue-600 transition"
-          >
-            Login
-          </Link>
+          <Link href="/auth">Login</Link>
         )}
       </div>
     </nav>
