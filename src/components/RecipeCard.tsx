@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useState, useEffect } from "react";
 import { account, client } from "@/lib/client";
 import { CardItem } from "@/types/CardItem";
@@ -141,16 +142,26 @@ export default function RecipeCard({ item }: RecipeCardProps) {
     }
   };
 
+  //i know theres an edge case here will fix later
+  const detailUrl =
+    item.subcategory !== "Alcoholic"
+      ? `/dishes/${item.id}`
+      : `/cocktails/${item.id}`;
+
   return (
     <div className="border rounded shadow p-4 hover:shadow-lg transition flex flex-col">
-      <Image
-        src={item.thumbnail || ""}
-        alt={item.name}
-        width={400}
-        height={400}
-        className="w-full h-48 object-cover rounded"
-      />
-      <h2 className="mt-2 text-lg font-semibold">{item.name}</h2>
+      <Link href={detailUrl}>
+        <Image
+          src={item.thumbnail || ""}
+          alt={item.name}
+          width={400}
+          height={400}
+          className="w-full h-48 object-cover rounded cursor-pointer hover:opacity-90 transition"
+        />
+        <h2 className="mt-2 text-lg font-semibold hover:text-blue-600 transition cursor-pointer">
+          {item.name}
+        </h2>
+      </Link>
       {item.category && (
         <p className="text-sm text-gray-500">{item.category}</p>
       )}
@@ -161,7 +172,7 @@ export default function RecipeCard({ item }: RecipeCardProps) {
           onClick={handleRemoveFavourite}
           disabled={loading}
         >
-          {loading ? "Removing..." : "Remove from favourites"}
+          {loading ? "Removing..." : "Remove"}
         </button>
       ) : (
         <button
@@ -169,7 +180,7 @@ export default function RecipeCard({ item }: RecipeCardProps) {
           onClick={handleSaveFavourite}
           disabled={loading}
         >
-          {loading ? "Saving..." : "Save to favourites"}
+          {loading ? "Saving..." : "Save"}
         </button>
       )}
     </div>
