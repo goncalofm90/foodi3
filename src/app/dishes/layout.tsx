@@ -1,14 +1,6 @@
-import Navbar from "@/components/Navbar";
+import { ReactNode } from "react";
+import PrivateWrapper from "@/components/PrivateWrapper";
 
-export default function DishesLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <>
-      <Navbar />
-      <main className="p-4">{children}</main>
-    </>
-  );
+export default function DishesLayout({ children }: { children: ReactNode }) {
+  return <PrivateWrapper>{children}</PrivateWrapper>;
 }

@@ -27,7 +27,7 @@ export default function Navbar() {
     try {
       await account.deleteSession("current");
       setUser(null);
-      window.location.href = "/login";
+      window.location.href = "/auth";
     } catch (err) {
       console.error("Logout failed:", err);
     }

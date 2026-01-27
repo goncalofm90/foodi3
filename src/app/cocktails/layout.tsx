@@ -1,14 +1,7 @@
-import Navbar from "@/components/Navbar";
+// src/app/cocktails/layout.tsx
+import { ReactNode } from "react";
+import PrivateWrapper from "@/components/PrivateWrapper";
 
-export default function CocktailsLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <>
-      <Navbar />
-      <main className="p-4">{children}</main>
-    </>
-  );
+export default function CocktailsLayout({ children }: { children: ReactNode }) {
+  return <PrivateWrapper>{children}</PrivateWrapper>;
 }
