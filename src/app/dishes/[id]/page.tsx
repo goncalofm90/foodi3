@@ -27,47 +27,58 @@ export default async function DishDetail({ params }: DishDetailProps) {
     .filter(Boolean) as string[];
 
   return (
-    <main className="min-h-screen">
-      <div className="p-6">
+    <main className="min-h-screen bg-neutral-50">
+      <div className="max-w-5xl mx-auto p-6">
         <BackButton />
-        <h1 className="text-3xl font-bold mb-6">{meal.strMeal}</h1>
-      </div>
 
-      <div className="w-full mb-8 grid grid-cols-1 md:grid-cols-2 gap-4 px-6">
+        <h1 className="font-accent text-display-md text-neutral-900 mb-6 animate-fade-in">
+          {meal.strMeal}
+        </h1>
+
         {meal.strMealThumb && (
-          <div className="w-full h-[50vh] md:h-[70vh] relative rounded-lg overflow-hidden">
+          <div className="w-full h-[50vh] md:h-[70vh] relative rounded-card overflow-hidden shadow-soft mb-8 group animate-slide-up">
             <Image
               src={meal.strMealThumb}
               alt={meal.strMeal}
               fill
-              className="object-cover"
+              className="object-cover transition-transform duration-500 group-hover:scale-105"
             />
           </div>
         )}
-      </div>
 
-      <div className="p-6">
-        <div className="mb-6 flex flex-wrap gap-3">
-          <p className="bg-gray-800 p-2 rounded">
-            <strong>Category:</strong> {meal.strCategory}
-          </p>
-          <p className="bg-gray-800 p-2 rounded">
-            <strong>Area:</strong> {meal.strArea}
-          </p>
+        <div className="mb-8 flex flex-wrap gap-3">
+          <span className="bg-primary-500/10 text-primary-500 rounded-button px-3 py-1 font-medium">
+            {meal.strCategory}
+          </span>
+          <span className="bg-accent-500/10 text-accent-500 rounded-button px-3 py-1 font-medium">
+            {meal.strArea}
+          </span>
         </div>
 
         <section className="mb-8">
-          <h2 className="text-2xl font-semibold mb-2">Ingredients</h2>
-          <ul className="list-disc list-inside space-y-1">
+          <h2 className="font-accent text-heading-lg mb-3 animate-fade-in">
+            Ingredients
+          </h2>
+          <ul className="flex flex-wrap gap-2">
             {ingredients.map((item, index) => (
-              <li key={index}>{item}</li>
+              <li
+                key={index}
+                className="font-body text-primary-700 bg-primary-50 rounded-button px-3 py-1 shadow-inner-soft transition-transform duration-200 hover:scale-105"
+              >
+                {item}
+              </li>
             ))}
           </ul>
         </section>
 
         <section className="mb-8">
-          <h2 className="text-2xl font-semibold mb-2">Instructions</h2>
-          <p className="whitespace-pre-line">{meal.strInstructions}</p>
+          <h2 className="font-accent text-heading-lg mb-3 animate-fade-in">
+            Instructions
+          </h2>
+
+          <div className="font-body text-neutral-800 rounded-card bg-accent-50 p-6 shadow-soft whitespace-pre-line leading-relaxed">
+            {meal.strInstructions}
+          </div>
         </section>
       </div>
     </main>
