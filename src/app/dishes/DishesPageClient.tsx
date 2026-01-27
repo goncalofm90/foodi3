@@ -45,7 +45,6 @@ export default function DishesPage() {
     fetchUser();
   }, []);
 
-  // Fetch all user's favorites once when user is available
   useEffect(() => {
     const fetchFavourites = async () => {
       if (!currentUser) {
@@ -104,7 +103,6 @@ export default function DishesPage() {
     return () => clearTimeout(timeout);
   }, [query, router]);
 
-  // Handler to update favorites after add/remove
   const handleFavouriteToggle = (
     itemId: string,
     rowId: string | null,
@@ -128,41 +126,47 @@ export default function DishesPage() {
   };
 
   return (
-    <main className="p-4">
-      <h1 className="text-3xl font-bold mb-4">Dishes</h1>
+    <main className="min-h-screen bg-neutral-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <h1 className="font-display text-display-md text-neutral-900 mb-8">
+          Discover Dishes
+        </h1>
 
-      <form
-        className="mb-6"
-        onSubmit={(e) => {
-          e.preventDefault();
-          router.push(`/dishes?q=${encodeURIComponent(query)}`);
-        }}
-      >
-        <input
-          type="text"
-          name="q"
-          placeholder="Search dishes..."
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          className="border p-2 rounded w-full max-w-md"
-        />
-      </form>
-
-      {loading && <p>Loading...</p>}
-      {error && <p className="text-red-500">{error}</p>}
-      {!loading && dishes.length === 0 && query && <p>No dishes found.</p>}
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-        {dishes.map((dish) => (
-          <RecipeCard
-            key={dish.id}
-            item={dish}
-            currentUser={currentUser}
-            isFavourite={favouriteItemIds.has(dish.id)}
-            favouriteRowId={favouritesMap.get(dish.id) || null}
-            onFavouriteToggle={handleFavouriteToggle}
+        <form
+          className="mb-12"
+          onSubmit={(e) => {
+            e.preventDefault();
+            router.push(`/dishes?q=${encodeURIComponent(query)}`);
+          }}
+        >
+          <input
+            type="text"
+            name="q"
+            placeholder="Search for delicious dishes..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="search-input"
           />
-        ))}
+        </form>
+
+        {loading && <p className="text-neutral-600">Loading...</p>}
+        {error && <p className="text-error">{error}</p>}
+        {!loading && dishes.length === 0 && query && (
+          <p className="text-neutral-600">No dishes found.</p>
+        )}
+
+        <div className="recipe-grid">
+          {dishes.map((dish) => (
+            <RecipeCard
+              key={dish.id}
+              item={dish}
+              currentUser={currentUser}
+              isFavourite={favouriteItemIds.has(dish.id)}
+              favouriteRowId={favouritesMap.get(dish.id) || null}
+              onFavouriteToggle={handleFavouriteToggle}
+            />
+          ))}
+        </div>
       </div>
     </main>
   );
