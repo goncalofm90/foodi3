@@ -40,7 +40,6 @@ export default function ProfilePage() {
           const favRows = userFavs.rows || [];
           setFavourites(favRows);
 
-          // Build the sets/maps for efficient lookup
           const itemIds = new Set<string>();
           const map = new Map<string, string>();
 
@@ -66,18 +65,15 @@ export default function ProfilePage() {
     fetchUserData();
   }, []);
 
-  // Handler to update favorites when toggled
   const handleFavouriteToggle = (
     itemId: string,
     rowId: string | null,
     isAdding: boolean,
   ) => {
     if (isAdding && rowId) {
-      // Adding - this shouldn't happen on profile page, but handle it anyway
       setFavouriteItemIds((prev) => new Set(prev).add(itemId));
       setFavouritesMap((prev) => new Map(prev).set(itemId, rowId));
     } else {
-      // Removing - update state to remove from UI
       setFavouriteItemIds((prev) => {
         const next = new Set(prev);
         next.delete(itemId);
@@ -88,7 +84,6 @@ export default function ProfilePage() {
         next.delete(itemId);
         return next;
       });
-      // Also remove from favourites array to update the grid
       setFavourites((prev) => prev.filter((fav) => fav.itemId !== itemId));
     }
   };
@@ -97,41 +92,49 @@ export default function ProfilePage() {
   if (!user) return <p className="p-4">Please log in to see your profile.</p>;
 
   return (
-    <main className="p-4">
-      <h1 className="text-3xl font-bold mb-4">
-        Hello, {user.name || user.email}
-      </h1>
-      <h2 className="text-2xl font-semibold mb-2">Your Favourites</h2>
-      {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-          {error}
-        </div>
-      )}
-      {loadingFavourites ? (
-        <p>Loading favourites...</p>
-      ) : favourites.length === 0 ? (
-        <p>No favourites yet. Start adding some!</p>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          {favourites.map((item) => (
-            <RecipeCard
-              key={item.$id}
-              item={{
-                id: item.itemId,
-                name: item.itemName,
-                subcategory:
-                  item.itemType === "dish" ? "NotAlcoholic" : "Alcoholic",
-                category: item.itemType === "dish" ? "Dish" : "Cocktail",
-                thumbnail: item.thumbnail,
-              }}
-              currentUser={user}
-              isFavourite={favouriteItemIds.has(item.itemId)}
-              favouriteRowId={favouritesMap.get(item.itemId) || null}
-              onFavouriteToggle={handleFavouriteToggle}
-            />
-          ))}
-        </div>
-      )}
+    <main className="min-h-screen bg-neutral-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <h1 className="font-display text-display-md text-neutral-900 mb-2">
+          Hello, {user.name || user.email}
+        </h1>
+        <h2 className="font-accent text-heading-lg text-neutral-700 mb-8">
+          Your Favourites
+        </h2>
+
+        {error && (
+          <div className="bg-error/10 border border-error/20 text-error px-4 py-3 rounded-button mb-4">
+            {error}
+          </div>
+        )}
+
+        {loadingFavourites ? (
+          <p className="text-neutral-600">Loading favourites...</p>
+        ) : favourites.length === 0 ? (
+          <p className="text-neutral-600">
+            No favourites yet. Start adding some!
+          </p>
+        ) : (
+          <div className="recipe-grid">
+            {favourites.map((item) => (
+              <RecipeCard
+                key={item.$id}
+                item={{
+                  id: item.itemId,
+                  name: item.itemName,
+                  subcategory:
+                    item.itemType === "dish" ? "NotAlcoholic" : "Alcoholic",
+                  category: item.itemType === "dish" ? "Dish" : "Cocktail",
+                  thumbnail: item.thumbnail,
+                }}
+                currentUser={user}
+                isFavourite={favouriteItemIds.has(item.itemId)}
+                favouriteRowId={favouritesMap.get(item.itemId) || null}
+                onFavouriteToggle={handleFavouriteToggle}
+              />
+            ))}
+          </div>
+        )}
+      </div>
     </main>
   );
 }
