@@ -2,13 +2,21 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useEffect } from "react";
-import { account, client } from "@/lib/client";
+import { useState } from "react";
+import { client } from "@/lib/client";
 import { CardItem } from "@/types/CardItem";
-import { TablesDB, ID, Query } from "appwrite";
+import { TablesDB, ID } from "appwrite";
 
 interface RecipeCardProps {
   item: CardItem;
+  currentUser: any;
+  isFavourite: boolean;
+  favouriteRowId: string | null;
+  onFavouriteToggle: (
+    itemId: string,
+    rowId: string | null,
+    isAdding: boolean,
+  ) => void;
 }
 
 const DATABASE_ID = process.env.NEXT_PUBLIC_APPWRITE_DB_ID!;
@@ -16,52 +24,14 @@ const FAVOURITES_TABLE_ID =
   process.env.NEXT_PUBLIC_APPWRITE_FAVOURITES_TABLE_ID!;
 const tables = new TablesDB(client);
 
-export default function RecipeCard({ item }: RecipeCardProps) {
-  const [currentUser, setCurrentUser] = useState<any>(null);
-  const [isFavourite, setIsFavourite] = useState(false);
-  const [favouriteRowId, setFavouriteRowId] = useState<string | null>(null);
+export default function RecipeCard({
+  item,
+  currentUser,
+  isFavourite,
+  favouriteRowId,
+  onFavouriteToggle,
+}: RecipeCardProps) {
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const user = await account.get();
-        setCurrentUser(user);
-      } catch {
-        setCurrentUser(null);
-      }
-    };
-    fetchUser();
-  }, []);
-
-  useEffect(() => {
-    const checkIfFavourite = async () => {
-      if (!currentUser) return;
-
-      try {
-        const existing = await tables.listRows({
-          databaseId: DATABASE_ID,
-          tableId: FAVOURITES_TABLE_ID,
-          queries: [
-            Query.equal("userId", currentUser.$id),
-            Query.equal("itemId", item.id),
-          ],
-        });
-
-        if (existing.rows && existing.rows.length > 0) {
-          setIsFavourite(true);
-          setFavouriteRowId(existing.rows[0].$id);
-        } else {
-          setIsFavourite(false);
-          setFavouriteRowId(null);
-        }
-      } catch (err) {
-        console.error("Error checking favourite status:", err);
-      }
-    };
-
-    checkIfFavourite();
-  }, [currentUser, item.id]);
 
   const handleSaveFavourite = async () => {
     if (!currentUser) {
@@ -69,26 +39,15 @@ export default function RecipeCard({ item }: RecipeCardProps) {
       return;
     }
 
+    // Prevent saving if already a favorite will replace alerts with flashes later
+    if (isFavourite) {
+      alert("Already in your favourites!");
+      return;
+    }
+
     setLoading(true);
 
     try {
-      // Check for duplicates
-      const existing = await tables.listRows({
-        databaseId: DATABASE_ID,
-        tableId: FAVOURITES_TABLE_ID,
-        queries: [
-          Query.equal("userId", currentUser.$id),
-          Query.equal("itemId", item.id),
-        ],
-      });
-
-      if (existing.rows && existing.rows.length > 0) {
-        alert("You already have this in your favourites!");
-        setLoading(false);
-        return;
-      }
-
-      // Save the favourite
       const uniqueRowId = ID.unique();
 
       await tables.createRow({
@@ -106,12 +65,20 @@ export default function RecipeCard({ item }: RecipeCardProps) {
         write: [`user:${currentUser.$id}`],
       });
 
-      setIsFavourite(true);
-      setFavouriteRowId(uniqueRowId);
+      onFavouriteToggle(item.id, uniqueRowId, true);
       alert("Saved to favourites!");
     } catch (err: any) {
       console.error("❌ Failed to save favourite:", err);
-      alert(err.message || "Failed to save favourite.");
+
+      // Check if error is due to duplicate
+      if (
+        err.message?.includes("unique") ||
+        err.message?.includes("duplicate")
+      ) {
+        alert("This item is already in your favourites!");
+      } else {
+        alert(err.message || "Failed to save favourite.");
+      }
     } finally {
       setLoading(false);
     }
@@ -131,8 +98,7 @@ export default function RecipeCard({ item }: RecipeCardProps) {
         rowId: favouriteRowId,
       });
 
-      setIsFavourite(false);
-      setFavouriteRowId(null);
+      onFavouriteToggle(item.id, null, false);
       alert("Removed from favourites!");
     } catch (err: any) {
       console.error("❌ Failed to remove favourite:", err);

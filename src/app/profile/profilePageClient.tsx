@@ -15,6 +15,14 @@ export default function ProfilePage() {
   const [loadingFavourites, setLoadingFavourites] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Create sets/maps for RecipeCard props
+  const [favouriteItemIds, setFavouriteItemIds] = useState<Set<string>>(
+    new Set(),
+  );
+  const [favouritesMap, setFavouritesMap] = useState<Map<string, string>>(
+    new Map(),
+  );
+
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -23,14 +31,26 @@ export default function ProfilePage() {
         setLoadingFavourites(true);
 
         try {
-          // Query for ONLY current user's favourites using Query helper
           const userFavs = await tables.listRows({
             databaseId: DATABASE_ID,
             tableId: FAVOURITES_TABLE_ID,
             queries: [Query.equal("userId", currentUser.$id)],
           });
 
-          setFavourites(userFavs.rows || []);
+          const favRows = userFavs.rows || [];
+          setFavourites(favRows);
+
+          // Build the sets/maps for efficient lookup
+          const itemIds = new Set<string>();
+          const map = new Map<string, string>();
+
+          favRows.forEach((row: any) => {
+            itemIds.add(row.itemId);
+            map.set(row.itemId, row.$id); // itemId : rowId lookup
+          });
+
+          setFavouriteItemIds(itemIds);
+          setFavouritesMap(map);
         } catch (favErr: any) {
           console.error("❌ Error:", favErr);
           setError(favErr.message);
@@ -45,6 +65,34 @@ export default function ProfilePage() {
 
     fetchUserData();
   }, []);
+
+  // Handler to update favorites when toggled
+  const handleFavouriteToggle = (
+    itemId: string,
+    rowId: string | null,
+    isAdding: boolean,
+  ) => {
+    if (isAdding && rowId) {
+      // Adding - this shouldn't happen on profile page, but handle it anyway
+      setFavouriteItemIds((prev) => new Set(prev).add(itemId));
+      setFavouritesMap((prev) => new Map(prev).set(itemId, rowId));
+    } else {
+      // Removing - update state to remove from UI
+      setFavouriteItemIds((prev) => {
+        const next = new Set(prev);
+        next.delete(itemId);
+        return next;
+      });
+      setFavouritesMap((prev) => {
+        const next = new Map(prev);
+        next.delete(itemId);
+        return next;
+      });
+      // Also remove from favourites array to update the grid
+      setFavourites((prev) => prev.filter((fav) => fav.itemId !== itemId));
+    }
+  };
+
   if (user === undefined) return <p className="p-4">Loading profile...</p>;
   if (!user) return <p className="p-4">Please log in to see your profile.</p>;
 
@@ -76,6 +124,10 @@ export default function ProfilePage() {
                 category: item.itemType === "dish" ? "Dish" : "Cocktail",
                 thumbnail: item.thumbnail,
               }}
+              currentUser={user}
+              isFavourite={favouriteItemIds.has(item.itemId)}
+              favouriteRowId={favouritesMap.get(item.itemId) || null}
+              onFavouriteToggle={handleFavouriteToggle}
             />
           ))}
         </div>
