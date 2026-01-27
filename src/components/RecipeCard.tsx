@@ -6,6 +6,7 @@ import { useState } from "react";
 import { client } from "@/lib/client";
 import { CardItem } from "@/types/CardItem";
 import { TablesDB, ID } from "appwrite";
+import { Heart } from "lucide-react";
 
 interface RecipeCardProps {
   item: CardItem;
@@ -39,7 +40,6 @@ export default function RecipeCard({
       return;
     }
 
-    // Prevent saving if already a favorite will replace alerts with flashes later
     if (isFavourite) {
       alert("Already in your favourites!");
       return;
@@ -66,11 +66,9 @@ export default function RecipeCard({
       });
 
       onFavouriteToggle(item.id, uniqueRowId, true);
-      alert("Saved to favourites!");
     } catch (err: any) {
       console.error("❌ Failed to save favourite:", err);
 
-      // Check if error is due to duplicate
       if (
         err.message?.includes("unique") ||
         err.message?.includes("duplicate")
@@ -99,7 +97,6 @@ export default function RecipeCard({
       });
 
       onFavouriteToggle(item.id, null, false);
-      alert("Removed from favourites!");
     } catch (err: any) {
       console.error("❌ Failed to remove favourite:", err);
       alert(err.message || "Failed to remove favourite.");
@@ -113,41 +110,73 @@ export default function RecipeCard({
       ? `/dishes/${item.id}`
       : `/cocktails/${item.id}`;
 
-  return (
-    <div className="border rounded shadow p-4 hover:shadow-lg transition flex flex-col">
-      <Link href={detailUrl}>
-        <Image
-          src={item.thumbnail || ""}
-          alt={item.name}
-          width={400}
-          height={400}
-          className="w-full h-48 object-cover rounded cursor-pointer hover:opacity-90 transition"
-        />
-        <h2 className="mt-2 text-lg font-semibold hover:text-blue-600 transition cursor-pointer">
-          {item.name}
-        </h2>
-      </Link>
-      {item.category && (
-        <p className="text-sm text-gray-500">{item.category}</p>
-      )}
+  const isAlcoholic = item.subcategory === "Alcoholic";
 
-      {isFavourite ? (
+  return (
+    <article className="group relative bg-white rounded-card shadow-soft hover:shadow-lifted transition-all duration-300 overflow-hidden animate-scale-in">
+      <Link
+        href={detailUrl}
+        className="block relative aspect-[4/3] overflow-hidden bg-neutral-100"
+      >
+        <Image
+          src={item.thumbnail || "/placeholder-recipe.jpg"}
+          alt={item.name}
+          fill
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          className="object-cover transition-transform duration-500 group-hover:scale-105"
+        />
+
+        <div className="absolute inset-0 bg-gradient-to-t from-neutral-900/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+        <div className="absolute top-3 left-3 z-10">
+          <span
+            className={`inline-block px-3 py-1 rounded-full text-xs font-medium backdrop-blur-sm ${
+              isAlcoholic
+                ? "bg-primary-500/90 text-white"
+                : "bg-accent-500/90 text-white"
+            }`}
+          >
+            {item.category || (isAlcoholic ? "Cocktail" : "Dish")}
+          </span>
+        </div>
+      </Link>
+
+      <div className="p-5">
+        <Link href={detailUrl} className="block mb-3">
+          <h2 className="font-accent text-heading-md text-neutral-900 group-hover:text-primary-600 transition-colors line-clamp-2">
+            {item.name}
+          </h2>
+        </Link>
+
         <button
-          className="bg-red-500 text-white px-2 py-1 rounded mt-2 self-start disabled:opacity-50"
-          onClick={handleRemoveFavourite}
+          onClick={isFavourite ? handleRemoveFavourite : handleSaveFavourite}
           disabled={loading}
+          className={`
+            flex items-center gap-2 px-4 py-2.5 rounded-button font-medium text-sm
+            transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed
+            ${
+              isFavourite
+                ? "bg-error/10 text-error hover:bg-error hover:text-white"
+                : "bg-primary-500 text-white hover:bg-primary-600 shadow-sm hover:shadow-md"
+            }
+          `}
         >
-          {loading ? "Removing..." : "Remove"}
+          <Heart
+            className={`w-4 h-4 transition-transform ${
+              isFavourite ? "fill-current scale-110" : ""
+            } ${loading ? "animate-pulse" : ""}`}
+          />
+          <span>
+            {loading
+              ? isFavourite
+                ? "Removing..."
+                : "Saving..."
+              : isFavourite
+                ? "Remove"
+                : "Save"}
+          </span>
         </button>
-      ) : (
-        <button
-          className="bg-yellow-400 text-white px-2 py-1 rounded mt-2 self-start disabled:opacity-50"
-          onClick={handleSaveFavourite}
-          disabled={loading}
-        >
-          {loading ? "Saving..." : "Save"}
-        </button>
-      )}
-    </div>
+      </div>
+    </article>
   );
 }
