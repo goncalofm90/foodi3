@@ -4,10 +4,10 @@ import { ToastProvider } from "@/contexts/ToastContext";
 
 export const metadata: Metadata = {
   title: "Foodi3",
-  description: "Search and save recipes and cocktails",
+  description: "Recipes & Cocktails, always at your fingertips.",
   openGraph: {
     title: "Foodi3",
-    description: "Search and save recipes and cocktails",
+    description: "Recipes & Cocktails, always at your fingertips.",
     images: [
       {
         url: "/foodi3.jpg",
@@ -21,8 +21,13 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Foodi3",
-    description: "Search and save recipes and cocktails",
+    description: "Recipes & Cocktails, always at your fingertips.",
     images: ["/foodi3.jpg"],
+  },
+  icons: {
+    icon: "/cooking.png",
+    shortcut: "/cooking.png",
+    apple: "/cooking.png",
   },
 };
 
