@@ -8,10 +8,11 @@ import { CardItem } from "@/types/CardItem";
 import { TablesDB, ID } from "appwrite";
 import { Heart } from "lucide-react";
 import { useToast } from "@/contexts/ToastContext";
+import { User } from "@/types/User";
 
 interface RecipeCardProps {
   item: CardItem;
-  currentUser: any;
+  currentUser: User | null;
   isFavourite: boolean;
   favouriteRowId: string | null;
   onFavouriteToggle: (
@@ -34,7 +35,7 @@ export default function RecipeCard({
   onFavouriteToggle,
 }: RecipeCardProps) {
   const [loading, setLoading] = useState(false);
-  const { showSuccess, showError } = useToast();
+  const { showError } = useToast();
 
   const handleSaveFavourite = async () => {
     if (!currentUser) {
@@ -63,8 +64,10 @@ export default function RecipeCard({
           itemType: item.subcategory === "Alcoholic" ? "cocktail" : "dish",
           thumbnail: item.thumbnail,
         },
-        read: [`user:${currentUser.$id}`],
-        write: [`user:${currentUser.$id}`],
+        permissions: [
+          `read("user:${currentUser.$id}")`,
+          `write("user:${currentUser.$id}")`,
+        ],
       });
 
       onFavouriteToggle(item.id, uniqueRowId, true);
