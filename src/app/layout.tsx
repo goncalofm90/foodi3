@@ -10,7 +10,7 @@ export const metadata: Metadata = {
     description: "Recipes & Cocktails, always at your fingertips.",
     images: [
       {
-        url: "/foodi3.jpg",
+        url: "https://foodi3.appwrite.network/cooking.png",
         width: 1200,
         height: 630,
         alt: "Foodi3 Logo",
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Foodi3",
     description: "Recipes & Cocktails, always at your fingertips.",
-    images: ["/foodi3.jpg"],
+    images: ["https://foodi3.appwrite.network/cooking.png"],
   },
   icons: {
     icon: "/cooking.png",
