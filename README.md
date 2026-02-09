@@ -12,7 +12,6 @@ This project is currently in its early development phase. The initial focus is o
 * **React**
 * **TypeScript**
 * **Tailwind CSS**
-* **Redux Toolkit** (state management)
 * **Appwrite** (authentication, database – planned)
 
 ### External APIs
@@ -39,7 +38,6 @@ src/
 ├── app/            # Next.js App Router pages
 ├── components/     # Reusable UI components
 ├── services/       # API and service clients
-├── store/          # Redux store and slices
 ├── types/          # Shared TypeScript types
 ```
 
