@@ -7,6 +7,7 @@ import { client } from "@/lib/client";
 import { CardItem } from "@/types/CardItem";
 import { TablesDB, ID } from "appwrite";
 import { Heart } from "lucide-react";
+import { useToast } from "@/contexts/ToastContext";
 
 interface RecipeCardProps {
   item: CardItem;
@@ -33,15 +34,16 @@ export default function RecipeCard({
   onFavouriteToggle,
 }: RecipeCardProps) {
   const [loading, setLoading] = useState(false);
+  const { showSuccess, showError } = useToast();
 
   const handleSaveFavourite = async () => {
     if (!currentUser) {
-      alert("Please login to save favourites!");
+      showError("Please login to save favourites!");
       return;
     }
 
     if (isFavourite) {
-      alert("Already in your favourites!");
+      showError("Already in your favourites!");
       return;
     }
 
@@ -73,9 +75,9 @@ export default function RecipeCard({
         err.message?.includes("unique") ||
         err.message?.includes("duplicate")
       ) {
-        alert("This item is already in your favourites!");
+        showError("This item is already in your favourites!");
       } else {
-        alert(err.message || "Failed to save favourite.");
+        showError(err.message || "Failed to save favourite");
       }
     } finally {
       setLoading(false);
@@ -99,7 +101,7 @@ export default function RecipeCard({
       onFavouriteToggle(item.id, null, false);
     } catch (err: any) {
       console.error("❌ Failed to remove favourite:", err);
-      alert(err.message || "Failed to remove favourite.");
+      showError(err.message || "Failed to remove favourite");
     } finally {
       setLoading(false);
     }

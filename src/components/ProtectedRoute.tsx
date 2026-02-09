@@ -3,6 +3,7 @@
 import { ReactNode, useEffect, useState } from "react";
 import { account } from "@/lib/client";
 import { useRouter } from "next/navigation";
+import CocktailLoader from "./Loader";
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -27,7 +28,7 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     checkAuth();
   }, [router]);
 
-  if (loading) return <p className="p-4">Loading...</p>;
+  if (loading) return <CocktailLoader />;
   if (!authenticated) return null;
 
   return <>{children}</>;

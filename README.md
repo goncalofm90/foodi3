@@ -25,6 +25,8 @@ Foodi3 is a modern web application for discovering food recipes and cocktails. I
 * View recipe and cocktail details - ✅ 
 * User authentication and google auth (Appwrite) - ✅ 
 * Save favourite recipes and drinks - ✅
+* Filter by category - WIP 
+* Infinite loading - WIP
 * Create/manage custom user recipes - not in MVP
 
 ---

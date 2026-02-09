@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import { account, client } from "@/lib/client";
 import { TablesDB, Query } from "appwrite";
 import RecipeCard from "@/components/RecipeCard";
+import { useToast } from "@/contexts/ToastContext";
+import CocktailLoader from "@/components/Loader";
 
 const DATABASE_ID = process.env.NEXT_PUBLIC_APPWRITE_DB_ID!;
 const FAVOURITES_TABLE_ID =
@@ -10,6 +12,7 @@ const FAVOURITES_TABLE_ID =
 const tables = new TablesDB(client);
 
 export default function ProfilePage() {
+  const { showSuccess, showError, showToast } = useToast();
   const [user, setUser] = useState<any | undefined>(undefined);
   const [favourites, setFavourites] = useState<any[]>([]);
   const [loadingFavourites, setLoadingFavourites] = useState(false);
@@ -52,18 +55,21 @@ export default function ProfilePage() {
           setFavouritesMap(map);
         } catch (favErr: any) {
           console.error("❌ Error:", favErr);
-          setError(favErr.message);
+          const errorMessage = favErr.message || "Failed to load favourites";
+          setError(errorMessage);
+          showError(errorMessage);
         } finally {
           setLoadingFavourites(false);
         }
       } catch (userErr) {
         console.error("❌ Error fetching user:", userErr);
         setUser(null);
+        showError("Failed to load user profile");
       }
     };
 
     fetchUserData();
-  }, []);
+  }, [showError]);
 
   const handleFavouriteToggle = (
     itemId: string,
@@ -73,6 +79,7 @@ export default function ProfilePage() {
     if (isAdding && rowId) {
       setFavouriteItemIds((prev) => new Set(prev).add(itemId));
       setFavouritesMap((prev) => new Map(prev).set(itemId, rowId));
+      showSuccess("Added to favorites!");
     } else {
       setFavouriteItemIds((prev) => {
         const next = new Set(prev);
@@ -85,10 +92,11 @@ export default function ProfilePage() {
         return next;
       });
       setFavourites((prev) => prev.filter((fav) => fav.itemId !== itemId));
+      showToast("Removed from favorites", "info");
     }
   };
 
-  if (user === undefined) return <p className="p-4">Loading profile...</p>;
+  if (user === undefined) return <CocktailLoader />;
   if (!user) return <p className="p-4">Please log in to see your profile.</p>;
 
   return (

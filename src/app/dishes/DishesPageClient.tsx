@@ -7,6 +7,8 @@ import { searchMeals, mapMealToCardItem } from "@/services/mealdb";
 import { CardItem } from "@/types/CardItem";
 import { account, client } from "@/lib/client";
 import { TablesDB, Query } from "appwrite";
+import { useToast } from "@/contexts/ToastContext";
+import CocktailLoader from "@/components/Loader";
 
 const DATABASE_ID = process.env.NEXT_PUBLIC_APPWRITE_DB_ID!;
 const FAVOURITES_TABLE_ID =
@@ -16,6 +18,7 @@ const tables = new TablesDB(client);
 export default function DishesPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { showSuccess, showError, showToast } = useToast();
   const initialQuery = searchParams.get("q") ?? "";
 
   const [query, setQuery] = useState(initialQuery);
@@ -72,11 +75,12 @@ export default function DishesPage() {
         setFavouritesMap(map);
       } catch (err) {
         console.error("Error fetching favourites:", err);
+        showError("Failed to load your favorites");
       }
     };
 
     fetchFavourites();
-  }, [currentUser]);
+  }, [currentUser, showError]);
 
   useEffect(() => {
     const fetchDishes = async () => {
@@ -86,15 +90,17 @@ export default function DishesPage() {
       try {
         const meals = await searchMeals(query || "a"); // default list
         setDishes(meals.map(mapMealToCardItem));
-      } catch {
-        setError("Failed to fetch dishes");
+      } catch (err) {
+        const errorMessage = "Failed to fetch dishes";
+        setError(errorMessage);
+        showError(errorMessage);
       } finally {
         setLoading(false);
       }
     };
 
     fetchDishes();
-  }, [query]);
+  }, [query, showError]);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -111,6 +117,7 @@ export default function DishesPage() {
     if (isAdding && rowId) {
       setFavouriteItemIds((prev) => new Set(prev).add(itemId));
       setFavouritesMap((prev) => new Map(prev).set(itemId, rowId));
+      showSuccess("Added to favorites!");
     } else {
       setFavouriteItemIds((prev) => {
         const next = new Set(prev);
@@ -122,6 +129,7 @@ export default function DishesPage() {
         next.delete(itemId);
         return next;
       });
+      showToast("Removed from favorites", "info");
     }
   };
 
@@ -149,7 +157,7 @@ export default function DishesPage() {
           />
         </form>
 
-        {loading && <p className="text-neutral-600">Loading...</p>}
+        {loading && <CocktailLoader />}
         {error && <p className="text-error">{error}</p>}
         {!loading && dishes.length === 0 && query && (
           <p className="text-neutral-600">No dishes found.</p>
