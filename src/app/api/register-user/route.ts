@@ -37,8 +37,7 @@ export async function POST(req: Request) {
             oauthProvider,
             createdAt: new Date().toISOString()
           },
-          read: [`user:${userId}`],
-          write: [`user:${userId}`],
+          permissions: [`user:${userId}`], 
         });
 
         return NextResponse.json({ 
