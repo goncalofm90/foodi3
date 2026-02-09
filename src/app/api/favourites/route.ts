@@ -20,12 +20,12 @@ export async function POST(req: Request) {
 
     // Create favourite row (unique per user + item)
     const doc = await tables.createRow({
-      tableId: FAVOURITES_TABLE_ID,
-      data: { userId, itemId, name, type, thumbnail },
-      read: [`user:${userId}`],  
-      write: [`user:${userId}`], 
-      rowId: `${itemId}_${userId}`,
-    });
+    databaseId: DATABASE_ID,
+    tableId: FAVOURITES_TABLE_ID,
+    data: { userId, itemId, name, type, thumbnail },
+    permissions: [`user:${userId}`], 
+    rowId: `${itemId}_${userId}`,
+  });
 
     return NextResponse.json(doc);
   } catch (err: any) {
@@ -45,8 +45,9 @@ export async function GET(req: Request) {
 
     // List rows in favourites table for this user
     const docs = await tables.listRows({
+      databaseId: DATABASE_ID,
       tableId: FAVOURITES_TABLE_ID,
-      filters: [`userId=${userId}`],
+      queries: [`userId = "${userId}"`],
     });
 
     return NextResponse.json(docs.rows);
