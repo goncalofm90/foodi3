@@ -5,6 +5,8 @@ import { TablesDB, Query } from "appwrite";
 import RecipeCard from "@/components/RecipeCard";
 import { useToast } from "@/contexts/ToastContext";
 import CocktailLoader from "@/components/Loader";
+import { User } from "@/types/User";
+import { FavouriteRow } from "@/types/FavouriteRow";
 
 const DATABASE_ID = process.env.NEXT_PUBLIC_APPWRITE_DB_ID!;
 const FAVOURITES_TABLE_ID =
@@ -13,12 +15,24 @@ const tables = new TablesDB(client);
 
 export default function ProfilePage() {
   const { showSuccess, showError, showToast } = useToast();
-  const [user, setUser] = useState<any | undefined>(undefined);
-  const [favourites, setFavourites] = useState<any[]>([]);
+  const [user, setUser] = useState<User | null>(null);
+  const [favouriteRows, setFavouriteRows] = useState<FavouriteRow[]>([]);
+
+  // UI-friendly favourites state
+  const [favourites, setFavourites] = useState<
+    {
+      id: string;
+      href: string;
+      name: string;
+      subcategory: string;
+      category: string;
+      thumbnail: string;
+    }[]
+  >([]);
+
   const [loadingFavourites, setLoadingFavourites] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Create sets/maps for RecipeCard props
   const [favouriteItemIds, setFavouriteItemIds] = useState<Set<string>>(
     new Set(),
   );
@@ -29,7 +43,7 @@ export default function ProfilePage() {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const currentUser = await account.get();
+        const currentUser: User = await account.get();
         setUser(currentUser);
         setLoadingFavourites(true);
 
@@ -40,22 +54,30 @@ export default function ProfilePage() {
             queries: [Query.equal("userId", currentUser.$id)],
           });
 
-          const favRows = userFavs.rows || [];
-          setFavourites(favRows);
+          const favRows = userFavs.rows as unknown as FavouriteRow[];
+          setFavouriteRows(favRows);
+
+          const uiFavourites = favRows.map((row) => ({
+            id: row.itemId,
+            href: `/recipes/${row.itemType || "unknown"}/${row.itemId}`,
+            name: row.itemName || "Unnamed",
+            subcategory: row.itemType === "dish" ? "NotAlcoholic" : "Alcoholic",
+            category: row.itemType === "dish" ? "Dish" : "Cocktail",
+            thumbnail: row.thumbnail ?? "", // <<< default to empty string if undefined
+          }));
+          setFavourites(uiFavourites);
 
           const itemIds = new Set<string>();
           const map = new Map<string, string>();
-
-          favRows.forEach((row: any) => {
+          favRows.forEach((row) => {
             itemIds.add(row.itemId);
-            map.set(row.itemId, row.$id); // itemId : rowId lookup
+            map.set(row.itemId, row.$id);
           });
 
           setFavouriteItemIds(itemIds);
           setFavouritesMap(map);
-        } catch (favErr: any) {
-          console.error("❌ Error:", favErr);
-          const errorMessage = favErr.message || "Failed to load favourites";
+        } catch {
+          const errorMessage = "Failed to load favourites";
           setError(errorMessage);
           showError(errorMessage);
         } finally {
@@ -91,7 +113,9 @@ export default function ProfilePage() {
         next.delete(itemId);
         return next;
       });
-      setFavourites((prev) => prev.filter((fav) => fav.itemId !== itemId));
+
+      // Remove from UI favourites
+      setFavourites((prev) => prev.filter((fav) => fav.id !== itemId));
       showToast("Removed from favorites", "info");
     }
   };
@@ -125,18 +149,11 @@ export default function ProfilePage() {
           <div className="recipe-grid">
             {favourites.map((item) => (
               <RecipeCard
-                key={item.$id}
-                item={{
-                  id: item.itemId,
-                  name: item.itemName,
-                  subcategory:
-                    item.itemType === "dish" ? "NotAlcoholic" : "Alcoholic",
-                  category: item.itemType === "dish" ? "Dish" : "Cocktail",
-                  thumbnail: item.thumbnail,
-                }}
+                key={item.id}
+                item={item}
                 currentUser={user}
-                isFavourite={favouriteItemIds.has(item.itemId)}
-                favouriteRowId={favouritesMap.get(item.itemId) || null}
+                isFavourite={favouriteItemIds.has(item.id)}
+                favouriteRowId={favouritesMap.get(item.id) || null}
                 onFavouriteToggle={handleFavouriteToggle}
               />
             ))}
