@@ -59,8 +59,8 @@ export default function AuthPage() {
       setError(null);
       await account.createOAuth2Session({
         provider: OAuthProvider.Google,
-        success: `${window.location.origin}/auth/callback`,
-        failure: `${window.location.origin}/auth?error=oauth_failed`,
+        success: `https://foodi3.appwrite.network/auth/callback`,
+        failure: `https://foodi3.appwrite.network/auth?error=oauth_failed`,
       });
     } catch (err) {
       console.error("OAuth error:", err);
