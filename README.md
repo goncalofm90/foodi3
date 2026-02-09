@@ -1,8 +1,6 @@
 # Foodi3
 
-Foodi3 is a modern web application for discovering food recipes and cocktails. It allows users to search, browse, and eventually save their favourite meals and drinks, with a focus on clean UX, performance, and scalability.
-
-This project is currently in its early development phase. The initial focus is on setting up a solid technical foundation and implementing recipe and cocktail search and listings.
+Foodi3 is a modern web application for discovering food recipes and cocktails. It allows users to search, browse, and save their favourite meals and drinks, with a focus on clean UX, performance, and scalability.
 
 ---
 
@@ -12,7 +10,7 @@ This project is currently in its early development phase. The initial focus is o
 * **React**
 * **TypeScript**
 * **Tailwind CSS**
-* **Appwrite** (authentication, database – planned)
+* **Appwrite** (authentication, database )
 
 ### External APIs
 
@@ -23,11 +21,11 @@ This project is currently in its early development phase. The initial focus is o
 
 ## Planned Features
 
-* Search meals and cocktails
-* View recipe and cocktail details
-* User authentication (Appwrite)
-* Save favourite recipes and drinks
-* Create custom user recipes
+* Search meals and cocktails - ✅ 
+* View recipe and cocktail details - ✅ 
+* User authentication and google auth (Appwrite) - ✅ 
+* Save favourite recipes and drinks - ✅
+* Create/manage custom user recipes - not in MVP
 
 ---
 
@@ -47,7 +45,7 @@ src/
 
 ### Prerequisites
 
-* Node.js (18+ recommended)
+* Node.js (version 20+)
 * npm or yarn
 
 ### Installation
@@ -74,7 +72,7 @@ http://localhost:3000
 
 ## Status
 
-🚧 **Work in progress** – core setup and search functionality under active development. Obviously the UX/UI is also very placeholder. That is the last thing I'll work on probably.
+🚧 **MVP Done** – core setup and search functionality developed as well as UX/UI  . Custom recipe creation and management might be worked on eventually .
 
 ---
 
