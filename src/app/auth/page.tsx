@@ -60,7 +60,7 @@ export default function AuthPage() {
       await account.createOAuth2Session({
         provider: OAuthProvider.Google,
         success: `https://foodi3.appwrite.network/dishes?q=`,
-        failure: `hhttps://foodi3.appwrite.network/dishes?q=`,
+        failure: `https://foodi3.appwrite.network/dishes?q=`,
       });
     } catch (err) {
       console.error("OAuth error:", err);
