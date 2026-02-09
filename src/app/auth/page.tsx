@@ -6,6 +6,7 @@ import { account } from "@/lib/client";
 import { OAuthProvider, ID } from "appwrite";
 import { useToast } from "@/contexts/ToastContext";
 import CocktailLoader from "@/components/Loader";
+import { User } from "@/types/User";
 
 export default function AuthPage() {
   const router = useRouter();
@@ -15,14 +16,14 @@ export default function AuthPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   // Check if user is already logged in
   useEffect(() => {
     const fetchAndSyncUser = async () => {
       try {
-        const currentUser = await account.get();
+        const currentUser: User = await account.get();
         setUser(currentUser);
 
         // Always try to sync user to database
@@ -117,9 +118,8 @@ export default function AuthPage() {
       showSuccess("Account created successfully! You can now login.");
       // Clear the password field for security
       setPassword("");
-    } catch (err: any) {
-      console.error(err);
-      const errorMessage = err.message || "Registration failed";
+    } catch {
+      const errorMessage = "Registration failed";
       setError(errorMessage);
       showError(errorMessage);
     } finally {
@@ -145,7 +145,7 @@ export default function AuthPage() {
         password,
       });
 
-      const currentUser = await account.get();
+      const currentUser: User = await account.get();
       setUser(currentUser);
       showSuccess(`Welcome back, ${currentUser.name || currentUser.email}!`);
 
@@ -201,7 +201,7 @@ export default function AuthPage() {
           <h1 className="text-3xl font-bold mb-4">
             Welcome, {user.name || user.email}
           </h1>
-          <p className="text-neutral-600 mb-6">You're already logged in!</p>
+          <p className="text-neutral-600 mb-6">{`You're already logged in!`}</p>
           <div className="flex gap-4 justify-center">
             <button
               onClick={() => router.push("/dishes")}

@@ -9,6 +9,8 @@ import { account, client } from "@/lib/client";
 import { TablesDB, Query } from "appwrite";
 import { useToast } from "@/contexts/ToastContext";
 import CocktailLoader from "@/components/Loader";
+import { User } from "@/types/User";
+import { FavouriteRow } from "@/types/FavouriteRow";
 
 const DATABASE_ID = process.env.NEXT_PUBLIC_APPWRITE_DB_ID!;
 const FAVOURITES_TABLE_ID =
@@ -27,7 +29,7 @@ export default function CocktailsPage() {
   const [error, setError] = useState<string | null>(null);
 
   // User and favorites state
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [favouriteItemIds, setFavouriteItemIds] = useState<Set<string>>(
     new Set(),
   );
@@ -39,8 +41,8 @@ export default function CocktailsPage() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const user = await account.get();
-        setCurrentUser(user);
+        const currentUser: User = await account.get();
+        setCurrentUser(currentUser);
       } catch {
         setCurrentUser(null);
       }
@@ -67,9 +69,10 @@ export default function CocktailsPage() {
         const itemIds = new Set<string>();
         const map = new Map<string, string>();
 
-        response.rows?.forEach((row: any) => {
-          itemIds.add(row.itemId);
-          map.set(row.itemId, row.$id);
+        response.rows?.forEach((row) => {
+          const favRow = row as unknown as FavouriteRow;
+          itemIds.add(favRow.itemId);
+          map.set(favRow.itemId, favRow.$id);
         });
 
         setFavouriteItemIds(itemIds);
@@ -91,7 +94,7 @@ export default function CocktailsPage() {
       try {
         const cocktails = await searchCocktails(query || "a");
         setCocktails(cocktails.map(mapCocktailToCardItem));
-      } catch (err) {
+      } catch {
         const errorMessage = "Failed to fetch cocktails";
         setError(errorMessage);
         showError(errorMessage);
