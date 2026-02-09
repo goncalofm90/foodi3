@@ -1,4 +1,4 @@
-export interface Cocktail {
+export interface Drink {
   idDrink: string;
   strDrink: string;
   strCategory: string;
