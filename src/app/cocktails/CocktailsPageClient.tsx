@@ -7,6 +7,7 @@ import { searchCocktails, mapCocktailToCardItem } from "@/services/cocktaildb";
 import { CardItem } from "@/types/CardItem";
 import { account, client } from "@/lib/client";
 import { TablesDB, Query } from "appwrite";
+import { useToast } from "@/contexts/ToastContext";
 
 const DATABASE_ID = process.env.NEXT_PUBLIC_APPWRITE_DB_ID!;
 const FAVOURITES_TABLE_ID =
@@ -16,6 +17,7 @@ const tables = new TablesDB(client);
 export default function CocktailsPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { showSuccess, showError, showToast } = useToast();
   const initialQuery = searchParams.get("q") ?? "";
 
   const [query, setQuery] = useState(initialQuery);
@@ -73,11 +75,12 @@ export default function CocktailsPage() {
         setFavouritesMap(map);
       } catch (err) {
         console.error("Error fetching favourites:", err);
+        showError("Failed to load your favorites");
       }
     };
 
     fetchFavourites();
-  }, [currentUser]);
+  }, [currentUser, showError]);
 
   useEffect(() => {
     const fetchCocktails = async () => {
@@ -85,17 +88,19 @@ export default function CocktailsPage() {
       setError(null);
 
       try {
-        const cocktails = await searchCocktails(query || "a"); // default list
+        const cocktails = await searchCocktails(query || "a");
         setCocktails(cocktails.map(mapCocktailToCardItem));
-      } catch {
-        setError("Failed to fetch cocktails");
+      } catch (err) {
+        const errorMessage = "Failed to fetch cocktails";
+        setError(errorMessage);
+        showError(errorMessage);
       } finally {
         setLoading(false);
       }
     };
 
     fetchCocktails();
-  }, [query]);
+  }, [query, showError]);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -113,6 +118,7 @@ export default function CocktailsPage() {
     if (isAdding && rowId) {
       setFavouriteItemIds((prev) => new Set(prev).add(itemId));
       setFavouritesMap((prev) => new Map(prev).set(itemId, rowId));
+      showSuccess("Added to favorites!");
     } else {
       setFavouriteItemIds((prev) => {
         const next = new Set(prev);
@@ -124,6 +130,7 @@ export default function CocktailsPage() {
         next.delete(itemId);
         return next;
       });
+      showToast("Removed from favorites", "info");
     }
   };
 
@@ -152,7 +159,6 @@ export default function CocktailsPage() {
         </form>
 
         {loading && <p className="text-neutral-600">Loading...</p>}
-        {error && <p className="text-error">{error}</p>}
         {!loading && cocktails.length === 0 && query && (
           <p className="text-neutral-600">No cocktails found.</p>
         )}
