@@ -4,6 +4,7 @@ import { account, client } from "@/lib/client";
 import { TablesDB, Query } from "appwrite";
 import RecipeCard from "@/components/RecipeCard";
 import { useToast } from "@/contexts/ToastContext";
+import CocktailLoader from "@/components/Loader";
 
 const DATABASE_ID = process.env.NEXT_PUBLIC_APPWRITE_DB_ID!;
 const FAVOURITES_TABLE_ID =
@@ -95,7 +96,7 @@ export default function ProfilePage() {
     }
   };
 
-  if (user === undefined) return <p className="p-4">Loading profile...</p>;
+  if (user === undefined) return <CocktailLoader />;
   if (!user) return <p className="p-4">Please log in to see your profile.</p>;
 
   return (

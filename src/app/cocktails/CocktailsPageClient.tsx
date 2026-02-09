@@ -8,6 +8,7 @@ import { CardItem } from "@/types/CardItem";
 import { account, client } from "@/lib/client";
 import { TablesDB, Query } from "appwrite";
 import { useToast } from "@/contexts/ToastContext";
+import CocktailLoader from "@/components/Loader";
 
 const DATABASE_ID = process.env.NEXT_PUBLIC_APPWRITE_DB_ID!;
 const FAVOURITES_TABLE_ID =
@@ -158,7 +159,7 @@ export default function CocktailsPage() {
           />
         </form>
 
-        {loading && <p className="text-neutral-600">Loading...</p>}
+        {loading && <CocktailLoader />}
         {!loading && cocktails.length === 0 && query && (
           <p className="text-neutral-600">No cocktails found.</p>
         )}
